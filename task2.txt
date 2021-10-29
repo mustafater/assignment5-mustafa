@@ -1,0 +1,99 @@
+Repository pattern ? 
+Veri merkezli uygulamalarda veriye erişimin ve yönetimin tek noktaya indirilmesini sağlayan bir tasarım desenidir. Veri merkezli uygulama olması şart değil elbette. Ama bu yazıdaki uygulama veriye erişim kurallarını belirleyen bir örnek üzerinden yürütülecektir.
+Örneğimiz, bir ASP.NET MVC web uygulaması içerisinden alınmış repository uygulanışını göstermektedir. Verileri, tek noktadan taşıma işlemini yapacak olan repository yapısı da Entity Framework altyapısını kullanmaktadır. Repository pattern için kullanılan teknoloji çokta önemli değildir.
+MVC veya Entity Framewok gibi detaylara bu örnekte gerek yoktur, yeri gelmişken bahsetmeden geçemedim. İstersek kendi veri katmanımızı (data layer) hazırlayarak da yola devam edebiliriz.
+public interface IDinnerRepository {
+ 
+       IQueryable<Dinner> FindAllDinners();
+       IQueryable<Dinner> FindDinnersByText(string q);
+ 
+       Dinner GetDinner(int id);
+ 
+       void Add(Dinner dinner);
+       void Delete(Dinner dinner);
+ 
+       void Save();
+}
+Bu arayüzü uygulayan bir sınıfı da aşağıdaki gibi gösterebiliriz.
+
+public class DinnerRepository : NerdDinner.Models.IDinnerRepository
+{
+ 
+       NerdDinnerEntities db = new NerdDinnerEntities();
+ 
+       Public IQueryable<Dinner> FindDinnersByText(string q)
+       {
+              return db.Dinners.Where(d => d.Title.Contains(q)
+                     || d.Description.Contains(q)
+                     || d.HostedBy.Contains(q));
+       }
+ 
+       public IQueryable<Dinner> FindAllDinners()
+       {
+              return db.Dinners;
+       }
+ 
+       public Dinner GetDinner(int id)
+       {
+             return db.Dinners.SingleOrDefault(d => d.DinnerID == id);
+       }
+ 
+       public void Add(Dinner dinner)
+       {
+             db.Dinners.AddObject(dinner);
+       }
+ 
+       public void Delete(Dinner dinner)
+       {
+            foreach (RSVP rsvp in dinner.RSVPs.ToList())
+                db.RSVPs.DeleteObject(rsvp);
+ 
+            db.Dinners.DeleteObject(dinner);
+      }
+ 
+      public void Save()
+      {
+            db.SaveChanges();
+      }
+ 
+}
+--------------------------------------------------------------------
+SQL Injection nedir ?
+
+data base işlemleri sırasında sql sorgularımıza istemediğimiz sorguların  eklenmesi ögnegin 1=1 herzaman dogru sonucu dönmesi gibidir.
+
+-----------------------------------------------
+
+Man in the Middle nedir ?
+
+Man in the middle saldırısı ağda, iki bağlantı arasındaki iletişimin dinlenmesi ile çeşitli verilerin ele geçirilmesi veya iletişimi dinlemekle kalmayıp her türlü değişikliğin yapılmasını da kapsayan bir saldırı yöntemidir. 
+MITM’de iki taraf arasındaki iletişim kesilebilir ya da yanıltıcı bir iletişim oluşturulabilir. Bu saldırı ağ üzerindeki paketleri yakalayarak manipüle etmek olarak özetlenebilir.
+
+------------------------------------------------
+
+Cross-Site Scripting nedir ?
+
+Cross site scripting(xss) adından anlaşılabileceği gibi bir web sayfasına  script kodları üzerinden saldırı yapılmasıdır. Web uygulamalarında bulunan  bilgisayar güvenlik açıklığıdır.  
+Bu açıklıklardan faydalanmak isteyen kötü niyetli kişiler tarafından web tarayıcısını ele geçirip faydalanarak bilgisayarınıza kötü kodlar yani bilgisayara zarar veren kod parçacıkları entegre edilebilir ve saldırganın kullanıcının tarayıcısında zarar verecek kod ekleme saldırısıdır. 
+Web sitesi kullanan herkesin bilgi sahibi olması gereken bir saldırı çeşididir çünkü sonuçları ciddi hasarlar oluşturabilir.  XSS saldırılarında genelde javascript ve HTML kullanılır. En yaygın olarak reflected, stored ve dom  kullanılır.
+
+-----------------------------
+
+Session Hijacking nedir?
+
+kurban makinede kimlik doğrulama işlemi sırasında oluşan bilgilerin saldırgan tarafından çalınmasıdır.
+ Böylece kurbana ait oturumun kontrolü saldırganın eline geçer. Parolaya sahip olmaya gerek kalmadan, kurban gibi erişim sağlanabilir.
+ Kimlik doğrulaması sırasında kullanılan parola bilgisi kullanımında hesap kilitlenebiliyorken, geçersiz olan oturum ID değeri için hesap kilitlenmediği için Oturum Çalma saldırıları önemli bir saldırı yöntemi olarak görülür
+
+---------------------------------
+
+Cross-Site Request Forgery nedir ?
+
+Türkçe açılımı “Siteler Arası İstek Sahtekârlığı” şeklinde olan CSRF zafiyeti; web uygulamasını kullanmakta olan kullanıcıların istekleri dışında işlemler yürütülmesidir. 
+Uygulamaya giden isteklerin hangi kaynaktan ve nasıl gönderildiği kontrol edilmeyen sistemlerde ortaya çıkan bu zafiyet, aslında uygulamayı kodlayan yazılımcıların gözünden kaçan bir ayrıntıdır diyebiliriz.
+ Genelde CSRF veya XSRF şeklinde kısaltılan bu güvenlik açığı “Session Riding” olarak da bilinmektedir.
+
+
+
+
+
